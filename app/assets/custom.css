@@ -1,0 +1,26 @@
+table {
+    border-collapse: separate;
+    border-spacing: 0 0.5em;
+}
+
+tr {
+    font-size: 1.2em;
+}
+
+tr td {
+    padding: 15px 20px;
+    border-top: 1px solid #D3D3D3;
+    border-bottom: 1px solid #D3D3D3;
+}
+
+tr td:first-of-type {
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    border-left: 1px solid #D3D3D3;
+}
+
+tr td:last-of-type {
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    border-right: 1px solid #D3D3D3;
+}

@@ -38,4 +38,4 @@ if __name__ == '__main__':
         return layout
 
 
-    app.run_server(host="0.0.0.0", port="9000", debug=True)
+    app.run_server()

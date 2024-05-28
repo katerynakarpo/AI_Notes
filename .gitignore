@@ -3,9 +3,7 @@
 # Byte-compiled / optimized / DLL files
 
 # My local files
-test_app.py
 app/config.py
-app/db/config_db.py
 
 # template gitignore for python and pycharm
 __pycache__/

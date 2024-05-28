@@ -1,10 +1,12 @@
-from db.config_db import DATABASE_URL
-from sqlalchemy import create_engine, desc
+import os
+from sqlalchemy import create_engine, desc, select, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
-from db.db_tables import Base, Note, SearchHistory, CntNotes
+from db.db_tables import Base, Note, Embedding, SearchHistory, CntNotes
 from datetime import datetime
+import numpy as np
 
+DATABASE_URL = os.getenv('DATABASE_URL')
 if DATABASE_URL.startswith('postgres://'):
     DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://')
 
@@ -22,21 +24,34 @@ def connect():
 
 Session = connect()
 session = Session()
+session.execute(text('CREATE EXTENSION IF NOT EXISTS vector'))
 
 
-def get_all_notes_sorted_by_created_at_desc(user_id=1):
+def get_all_notes_sorted_by_created_at_desc(user_id: int = 1):
     notes = session.query(Note).filter_by(is_deleted=False, user_id=user_id).order_by(desc(Note.created_at)).all()
     return [(note.note_id, note.text_note) for note in notes]
 
 
-def add_note(note_text, user_id=1):
+def add_note(note_text: str, embedding_text: list, user_id: int = 1):
+    note_id = add_note_to_DB(note_text, user_id)
+    add_embedding(np.array(embedding_text), note_id)
+    return note_id
+
+
+def add_note_to_DB(note_text: str, user_id: int = 1):
     new_note = Note(text_note=note_text, user_id=user_id)
     session.add(new_note)
     session.commit()
     return new_note.note_id
 
 
-def update_note(note_id, new_text):
+def add_embedding(embedding_text: list, note_id: int):
+    new_embedding = Embedding(embedding_text=np.array(embedding_text), note_id=note_id)
+    session.add(new_embedding)
+    session.commit()
+
+
+def update_note(note_id: int, new_text: str):
     note = session.query(Note).filter_by(note_id=note_id).first()
     if note and not note.is_deleted:
         note.text_note = new_text
@@ -44,7 +59,7 @@ def update_note(note_id, new_text):
         session.commit()
 
 
-def delete_note(note_id):
+def delete_note(note_id: int):
     note = session.query(Note).filter_by(note_id=note_id).first()
     if note and not note.is_deleted:
         note.is_deleted = True
@@ -52,15 +67,30 @@ def delete_note(note_id):
         session.commit()
 
 
-def add_search_prompt(prompt):
-    new_prompt = SearchHistory(search_prompt=prompt)
+def add_search_prompt(prompt: str, prompt_embedding: list, user_id: int = 1):
+    new_prompt = SearchHistory(user_id=user_id, search_prompt=prompt, search_embedding=np.array(prompt_embedding))
     session.add(new_prompt)
     session.commit()
 
 
-def get_notes_number(user_id=1):
+def get_notes_number(user_id: int = 1):
     notes_number = session.query(CntNotes).filter_by(user_id=user_id).first()
     return notes_number.cnt
 
-# min max limit 10 ofset 90 (витягнути 10 після 90)
 
+def get_notes_limited(notes_limit: int, offset: int, user_id: int = 1):
+    notes = session.query(Note).filter_by(is_deleted=False, user_id=user_id).order_by(desc(Note.created_at)).limit(
+        notes_limit).offset(offset).all()
+    return [(note.note_id, note.text_note) for note in notes]
+    # return []
+
+def get_notes_by_ids(ids_list: list):
+    notes = session.query(Note).filter(Note.note_id.in_(ids_list)).all()
+    return [(note.note_id, note.text_note) for note in notes]
+
+
+def get_all_notes_embeddings(user_id: int = 1):
+    embeddings = session.query(Embedding).join(Note).filter(Note.user_id == user_id).filter(
+        Note.is_deleted == False)
+    results = session.execute(embeddings).scalars().first()
+    return [(embedding.note_id, embedding.embedding_text) for embedding in embeddings]

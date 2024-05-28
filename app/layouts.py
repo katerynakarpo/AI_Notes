@@ -1,11 +1,10 @@
 from dash import html, dcc
 import dash_bootstrap_components as dbc
-from config import icons_path
 from dash_iconify import DashIconify
 from layouts_methods import get_note_table
-from db.db_methods import get_all_notes_sorted_by_created_at_desc
+from db.db_methods import get_notes_limited, get_notes_number
 
-create_note_btn = dbc.Button([html.Img(src=f'{icons_path}/add_note.png', alt='image',
+create_note_btn = dbc.Button([html.Img(src=f'./assets/icons/add_note.png', alt='image',
                                        height='30', width='30', style={'margin-right': '7px'}),
                               "Create Note"], id=f"add-note-btn",
                              color="success", outline=True, style={'height': '45px'})
@@ -43,11 +42,12 @@ cancel_btn = dbc.Button(
     color='danger', style={'display': 'none', 'height': '45px'})
 
 
-get_existing_notes = get_all_notes_sorted_by_created_at_desc()
-note_cards_table = get_note_table(get_existing_notes)
-
-
 def get_layout():
+    notes_per_page = 5
+    total_notes = get_notes_number()
+    get_existing_notes = get_notes_limited(notes_per_page, 0)
+    note_cards_table = get_note_table(notes_per_page=5, total_notes=total_notes, notes_list=get_existing_notes)
+
     return html.Div([
         dbc.Row([
             dbc.Col([

@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey
-from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, LargeBinary
+from pgvector.sqlalchemy import Vector
+from sqlalchemy.orm import declarative_base, relationship, mapped_column
 from datetime import datetime
 
 Base = declarative_base()
@@ -27,6 +28,17 @@ class Note(Base):
     is_deleted = Column(Boolean, default=False)
     user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
     user = relationship('User', back_populates='notes')
+    embedding = relationship('Embedding', back_populates='note')
+
+
+class Embedding(Base):
+    __tablename__ = 'notes_embeddings'
+    created_at = Column(DateTime, default=datetime.utcnow)
+    embedding_id = Column(Integer, primary_key=True, autoincrement=True)
+    embedding_text = mapped_column(Vector(1536), nullable=False)
+    note_id = Column(Integer, ForeignKey('notes.note_id'), nullable=False)
+    last_updated = Column(DateTime, default=datetime.utcnow)
+    note = relationship('Note', back_populates='embedding')
 
 
 class SearchHistory(Base):
@@ -35,6 +47,7 @@ class SearchHistory(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     search_id = Column(Integer, primary_key=True, autoincrement=True)
     search_prompt = Column(String, nullable=False)
+    search_embedding = mapped_column(Vector(1536), nullable=False)
     user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
 
     user = relationship('User', back_populates='search_history')

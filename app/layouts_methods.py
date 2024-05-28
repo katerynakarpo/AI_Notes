@@ -1,6 +1,7 @@
 from dash import Dash, Output, Input, State, ALL, ctx, html, Patch, MATCH, dcc
 import dash_bootstrap_components as dbc
 from dash_iconify import DashIconify
+import numpy as np
 
 
 def create_empty_modal(note_index: int):
@@ -34,12 +35,12 @@ def get_new_note_card(note: str, note_index: int):
                        id={'type': 'update-note-btn', 'index': note_index},
                        n_clicks=0,
                        color='secondary', ),
-            create_empty_modal(note_index)])),
+            create_empty_modal(note_index)]), style={'text-align': 'right'}),
     ], id={'type': 'tr-notes-table', 'index': note_index})
     return note_card
 
 
-def get_note_table(notes_list=None):
+def get_note_table(notes_per_page: int, total_notes: str, notes_list: list = None):
     display = 'block'
     if notes_list is None:
         notes_list = []
@@ -47,9 +48,17 @@ def get_note_table(notes_list=None):
     notes_list_html = [get_new_note_card(note, note_id) for note_id, note in notes_list]
     note_cards_table = html.Div([
         dbc.Table(id='notes-datatable', children=notes_list_html),
-        dbc.Row([
-            dbc.Col(dbc.Input(id="page-size-input", placeholder="", value=5, )),
-            dbc.Col(dbc.Pagination(id="notes-pagination", max_value=1, fully_expanded=False))])
+
+        html.Div(dbc.Row([
+            dbc.Col(dbc.Input(id="page-size-input", type="number", value=notes_per_page,
+                              placeholder="Enter number of notes per page",
+                              min=1, max=40
+                              ), width=3, style={'maxWidth': 300}),
+            dbc.Col(dbc.Pagination(id="notes-pagination", max_value=np.ceil(total_notes / notes_per_page),
+                                   fully_expanded=False, active_page=1),
+                    width=8,)],
+            ), id='pages-control-container', style={'display': display,})
+
     ], id='notes-container', style={'display': display})
     return note_cards_table
 

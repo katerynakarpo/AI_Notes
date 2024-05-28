@@ -6,3 +6,6 @@ dash_extensions
 dash_iconify
 pandas
 sqlalchemy
+sklearn
+openai
+pgvector

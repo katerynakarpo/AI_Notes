@@ -4,6 +4,8 @@
 
 # My local files
 app/config.py
+*pyc
+.DS_Store
 
 # template gitignore for python and pycharm
 __pycache__/

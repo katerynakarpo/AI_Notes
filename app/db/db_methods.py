@@ -84,6 +84,7 @@ def get_notes_limited(notes_limit: int, offset: int, user_id: int = 1):
     return [(note.note_id, note.text_note) for note in notes]
     # return []
 
+
 def get_notes_by_ids(ids_list: list):
     notes = session.query(Note).filter(Note.note_id.in_(ids_list)).all()
     return [(note.note_id, note.text_note) for note in notes]
@@ -92,5 +93,11 @@ def get_notes_by_ids(ids_list: list):
 def get_all_notes_embeddings(user_id: int = 1):
     embeddings = session.query(Embedding).join(Note).filter(Note.user_id == user_id).filter(
         Note.is_deleted == False)
-    results = session.execute(embeddings).scalars().first()
     return [(embedding.note_id, embedding.embedding_text) for embedding in embeddings]
+
+
+def get_max_note(max_note_id: int, user_id: int = 1):
+    note = session.query(Note).filter_by(is_deleted=False, user_id=user_id).filter(Note.note_id < max_note_id).order_by(desc(Note.created_at)).first()
+    if note:
+        return (note.note_id, note.text_note)
+    return None, None

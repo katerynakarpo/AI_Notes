@@ -34,9 +34,6 @@ I tried two implementations: through **embeddings** and through a prompt. I chos
 
 https://ai-notes-0f40791934f9.herokuapp.com/
 
-## BUGS:
-- Delete Note -> do smth with pagination.
-
 ## TODO:
 - Embeddings Table. Save model name, that created this embedding.
 - Users.

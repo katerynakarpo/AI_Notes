@@ -70,17 +70,23 @@ def register_callbacks(app: Dash) -> None:
             note_id = db.add_note(note, get_embeddings(text=note))
             all_notes.insert(0, get_new_note_card(note, note_id))
             style_table['display'] = "block"
+
             outputs['note_cards'] = all_notes[:note_page_size_state]
             outputs['notes-container'] = style_table
+            outputs['pagination'] = np.ceil(db.get_notes_number() / note_page_size_state)
         elif trigger and type(trigger) != str and trigger.get('type', '') == 'delete-note-btn':
             index_to_delete = trigger['index']
-            db.delete_note(note_id=index_to_delete)  # delete note from DB
-
+            db.delete_note(note_id=index_to_delete)
             note_cards = list(filter(lambda x: x['props']['id']['index'] != index_to_delete, all_notes))
+            min_id = min(note_cards, key=lambda x: x['props']['id']['index'])['props']['id']['index']
+            new_note_id, new_note_text = db.get_max_note(min_id)
+            if new_note_id:
+                note_cards.append(get_new_note_card(new_note_text, new_note_id))
             style_table['display'] = 'block' if note_cards else 'none'
 
             outputs['note_cards'] = note_cards
             outputs['notes-container'] = style_table
+            outputs['pagination'] = np.ceil(db.get_notes_number() / note_page_size_state)
         elif trigger == 'notes-pagination':
             notes = db.get_notes_limited(notes_per_page, active_page * notes_per_page - notes_per_page)
             outputs['note_cards'] = [get_new_note_card(note, note_id) for note_id, note in notes]

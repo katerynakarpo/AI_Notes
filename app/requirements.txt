@@ -1,10 +1,11 @@
-psycopg2-binary
+gunicorn
 sqlalchemy
 dash
 dash_bootstrap_components
 dash_extensions
 dash_iconify
 pandas
+numpy
 sqlalchemy
 sklearn
 openai

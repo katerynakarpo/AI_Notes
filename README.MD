@@ -31,6 +31,9 @@ I tried two implementations: through **embeddings** and through a prompt. I chos
 - DB - published on Heroku
 - Application - published on Heroku
 
+
+https://ai-notes-0f40791934f9.herokuapp.com/
+
 ## BUGS:
 - Delete Note -> do smth with pagination.
 
